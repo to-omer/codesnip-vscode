@@ -2,6 +2,7 @@
 	"name": "codesnip-vscode",
 	"displayName": "codesnip-vscode",
 	"description": "codesnip",
+	"publisher": "to-omer",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.50.0"
@@ -10,14 +11,71 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:codesnip-vscode.helloWorld"
+		"onLanguage:rust"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"configuration": {
+			"title": "codesnip",
+			"properties": {
+				"codesnip.cacheFile": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": null,
+					"format": "uri",
+					"description": "cache"
+				},
+				"codesnip.source": {
+					"type": "array",
+					"default": [],
+					"format": "uri",
+					"description": "snippet source"
+				},
+				"codesnip.cfg": {
+					"type": "array",
+					"default": [],
+					"description": "--cfg="
+				},
+				"codesnip.filterItem": {
+					"type": "array",
+					"default": [],
+					"description": "--filter-item="
+				},
+				"codesnip.filterAttr": {
+					"type": "array",
+					"default": [],
+					"description": "--filter-attr="
+				},
+				"codesnip.insertionPosition": {
+					"type": "string",
+					"enum": [
+						"last",
+						"cursor"
+					],
+					"default": "last",
+					"description": "where to insert the snippet"
+				}
+			}
+		},
 		"commands": [
 			{
-				"command": "codesnip-vscode.helloWorld",
-				"title": "Hello World"
+				"command": "codesnip-vscode.bundle",
+				"category": "Codesnip",
+				"title": "Bundle"
+			},
+			{
+				"command": "codesnip-vscode.updateCache",
+				"category": "Codesnip",
+				"title": "Update Cache"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "codesnip-vscode.bundle",
+				"key": "ctrl+alt+b",
+				"when": "editorTextFocus && editorLangId == rust"
 			}
 		]
 	},
