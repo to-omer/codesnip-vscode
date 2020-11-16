@@ -2,7 +2,7 @@
 
 Insert the constructed snippet without duplication.
 
-![Demo](./gcd-lcm.gif)
+![Demo](https://github.com/to-omer/codesnip-vscode/blob/master/gcd-lcm.gif)
 
 Install codesnip.
 ```
