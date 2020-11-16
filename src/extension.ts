@@ -37,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	try {
 		fs.statSync(config.cacheFile);
 		const codesnipcmd = `cargo codesnip --use-cache=${config.cacheFile}`;
-		execShell(codesnipcmd + ' list').then(value => value.trimEnd().split(/\r\n|\n/)).then(items => {
+		execShell(codesnipcmd + ' list').then(value => value.trimEnd().split(" ")).then(items => {
 			const bundleDisposable = vscode.commands.registerCommand('codesnip-vscode.bundle', () => {
 				vscode.window.showQuickPick(items, { placeHolder: "name" }).then(bundle => {
 					if (bundle === undefined) { return; }
@@ -117,7 +117,7 @@ function getCodesnipConfiguration(): CodesnipConfiguration | undefined {
 function getDefaultCacheFile(): string | null {
 	const folders = vscode.workspace.workspaceFolders;
 	if (folders !== undefined && folders.length >= 1) {
-		return vscode.Uri.joinPath(folders[0].uri, 'target/codesnip/codesnip-cache.json').fsPath;
+		return vscode.Uri.joinPath(folders[0].uri, 'target/codesnip/codesnip-cache.bin').fsPath;
 	} else {
 		return null;
 	}
