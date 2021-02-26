@@ -1,6 +1,6 @@
 # codesnip-vscode
 
-Insert the constructed snippet without duplication.
+Insert the constructed snippet without duplication for Rust.
 
 ![Demo](./gcd-lcm.gif)
 
