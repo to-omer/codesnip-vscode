@@ -78,6 +78,15 @@ export async function activate(context: vscode.ExtensionContext) {
 			}
 		});
 	}
+
+	vscode.workspace.onDidChangeConfiguration(() => {
+		const reloadItem = "Reload Now";
+		vscode.window.showInformationMessage("Codesnip: reload required", reloadItem).then(selection => {
+			if (selection === reloadItem) {
+				vscode.commands.executeCommand("workbench.action.reloadWindow");
+			}
+		});
+	});
 }
 
 export function deactivate() { }
