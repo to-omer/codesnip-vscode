@@ -60,6 +60,11 @@
 					],
 					"default": "last",
 					"description": "where to insert the snippet"
+				},
+				"codesnip.notHide": {
+					"type": "boolean",
+					"default": false,
+					"description": "snippet list option: --not-hide"
 				}
 			}
 		},

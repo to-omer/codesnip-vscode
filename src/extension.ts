@@ -37,7 +37,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	try {
 		fs.statSync(config.cacheFile);
 		const codesnipcmd = `cargo codesnip --use-cache=${config.cacheFile}`;
-		execShell(codesnipcmd + ' list').then(value => value.trimEnd().split(" ")).then(items => {
+		let listcmd = codesnipcmd + ' list';
+		if (config.notHide) {
+			listcmd += ' --not-hide';
+		}
+		execShell(listcmd).then(value => value.trimEnd().split(" ")).then(items => {
 			const bundleDisposable = vscode.commands.registerCommand('codesnip-vscode.bundle', () => {
 				vscode.window.showQuickPick(items, { placeHolder: "name" }).then(bundle => {
 					if (bundle === undefined) { return; }
@@ -85,6 +89,7 @@ interface CodesnipConfiguration {
 	filterItem: string[],
 	filterAttr: string[],
 	insertionPosition: InsertionPosition,
+	notHide: boolean,
 }
 
 enum InsertionPosition {
@@ -111,7 +116,8 @@ function getCodesnipConfiguration(): CodesnipConfiguration | undefined {
 	let filterItem = codesnip.get<string[]>('filterItem', []);
 	let filterAttr = codesnip.get<string[]>('filterAttr', []);
 	let insertionPosition = InsertionPosition.fromString(codesnip.get<string>('insertionPosition'));
-	return { cacheFile, source, cfg, filterItem, filterAttr, insertionPosition };
+	let notHide = codesnip.get<boolean>('notHide', false);
+	return { cacheFile, source, cfg, filterItem, filterAttr, insertionPosition, notHide };
 }
 
 function getDefaultCacheFile(): string | null {
