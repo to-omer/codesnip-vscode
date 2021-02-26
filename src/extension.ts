@@ -36,7 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	try {
 		fs.statSync(config.cacheFile);
-		const codesnipcmd = `cargo codesnip --use-cache=${config.cacheFile}`;
+		const codesnipcmd = `cargo codesnip --use-cache="${config.cacheFile}"`;
 
 		const verifySnippetsDisposable = vscode.commands.registerCommand('codesnip-vscode.verifySnippets', () => {
 			const terminal = vscode.window.createTerminal('Codesnip');
@@ -53,14 +53,14 @@ export async function activate(context: vscode.ExtensionContext) {
 			const bundleDisposable = vscode.commands.registerCommand('codesnip-vscode.bundle', () => {
 				vscode.window.showQuickPick(items, { placeHolder: "name" }).then(bundle => {
 					if (bundle === undefined) { return; }
-					let cmd = codesnipcmd + ` bundle ${bundle}`;
+					let cmd = codesnipcmd + ` bundle "${bundle}"`;
 					const editor = vscode.window.activeTextEditor;
 					const document = editor?.document;
 					const text = document?.getText();
 					if (text !== undefined) {
 						const regex = /^\/\/ codesnip-guard: (\w+)$/gm;
 						let arr;
-						while ((arr = regex.exec(text)) !== null) { cmd += ` -e=${arr[1]}`; }
+						while ((arr = regex.exec(text)) !== null) { cmd += ` -e="${arr[1]}"`; }
 					}
 					execShell(cmd).then(value => {
 						editor?.edit(builder => {
@@ -152,7 +152,7 @@ function getUpdateCacheCommand(config: CodesnipConfiguration): string {
 	config.cfg.forEach(value => { cmd += ` --cfg=${value}`; });
 	config.filterItem.forEach(value => { cmd += ` --filter-item=${value}`; });
 	config.filterAttr.forEach(value => { cmd += ` --filter-attr=${value}`; });
-	cmd += ` cache ${config.cacheFile}`;
+	cmd += ` cache "${config.cacheFile}"`;
 	return cmd;
 }
 
