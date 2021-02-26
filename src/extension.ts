@@ -37,6 +37,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	try {
 		fs.statSync(config.cacheFile);
 		const codesnipcmd = `cargo codesnip --use-cache=${config.cacheFile}`;
+
+		const verifySnippetsDisposable = vscode.commands.registerCommand('codesnip-vscode.verifySnippets', () => {
+			const terminal = vscode.window.createTerminal('Codesnip');
+			terminal.show(false);
+			terminal.sendText(codesnipcmd + ' verify');
+		});
+		context.subscriptions.push(verifySnippetsDisposable);
+
 		let listcmd = codesnipcmd + ' list';
 		if (config.notHide) {
 			listcmd += ' --not-hide';

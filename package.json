@@ -78,6 +78,11 @@
 				"command": "codesnip-vscode.updateCache",
 				"category": "Codesnip",
 				"title": "Update Cache"
+			},
+			{
+				"command": "codesnip-vscode.verifySnippets",
+				"category": "Codesnip",
+				"title": "Verify Snippets"
 			}
 		],
 		"keybindings": [
