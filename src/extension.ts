@@ -15,7 +15,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	const config = getCodesnipConfiguration();
 	if (config === undefined) {
 		vscode.window.showErrorMessage("Codesnip: No cache file is set");
+		vscode.commands.executeCommand('workbench.action.openSettings', 'codesnip');
 		return;
+	}
+	if (config.source.length === 0) {
+		const openItem = "Open Settings";
+		vscode.window.showErrorMessage("Codesnip: No source file is set", openItem).then(selection => {
+			if (selection === openItem) {
+				vscode.commands.executeCommand('workbench.action.openSettings', 'codesnip');
+			}
+		});
 	}
 
 	const updateCacheDisposable = vscode.commands.registerCommand('codesnip-vscode.updateCache', () => {
@@ -87,13 +96,15 @@ export async function activate(context: vscode.ExtensionContext) {
 		});
 	}
 
-	vscode.workspace.onDidChangeConfiguration(() => {
-		const reloadItem = "Reload Now";
-		vscode.window.showInformationMessage("Codesnip: reload required", reloadItem).then(selection => {
-			if (selection === reloadItem) {
-				vscode.commands.executeCommand("workbench.action.reloadWindow");
-			}
-		});
+	vscode.workspace.onDidChangeConfiguration(event => {
+		if (event.affectsConfiguration('codesnip')) {
+			const reloadItem = "Reload Now";
+			vscode.window.showInformationMessage("Codesnip: reload required", reloadItem).then(selection => {
+				if (selection === reloadItem) {
+					vscode.commands.executeCommand("workbench.action.reloadWindow");
+				}
+			});
+		}
 	});
 }
 
