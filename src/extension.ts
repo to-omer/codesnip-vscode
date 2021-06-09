@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import * as fs from 'fs';
+import * as vscode from 'vscode';
 
 export async function activate(context: vscode.ExtensionContext) {
 	try { await execShell('cargo --version'); } catch {
@@ -116,6 +116,7 @@ interface CodesnipConfiguration {
 	cfg: string[],
 	filterItem: string[],
 	filterAttr: string[],
+	minify: boolean,
 	insertionPosition: InsertionPosition,
 	notHide: boolean,
 }
@@ -143,9 +144,10 @@ function getCodesnipConfiguration(): CodesnipConfiguration | undefined {
 	let cfg = codesnip.get<string[]>('cfg', []);
 	let filterItem = codesnip.get<string[]>('filterItem', []);
 	let filterAttr = codesnip.get<string[]>('filterAttr', []);
+	let minify = codesnip.get<boolean>('minify', false);
 	let insertionPosition = InsertionPosition.fromString(codesnip.get<string>('insertionPosition'));
 	let notHide = codesnip.get<boolean>('notHide', false);
-	return { cacheFile, source, cfg, filterItem, filterAttr, insertionPosition, notHide };
+	return { cacheFile, source, cfg, filterItem, filterAttr, minify, insertionPosition, notHide };
 }
 
 function getDefaultCacheFile(): string | null {
@@ -163,6 +165,7 @@ function getUpdateCacheCommand(config: CodesnipConfiguration): string {
 	config.cfg.forEach(value => { cmd += ` --cfg=${value}`; });
 	config.filterItem.forEach(value => { cmd += ` --filter-item=${value}`; });
 	config.filterAttr.forEach(value => { cmd += ` --filter-attr=${value}`; });
+	if (config.minify) { cmd += " --format=minify"; }
 	cmd += ` cache "${config.cacheFile}"`;
 	return cmd;
 }
