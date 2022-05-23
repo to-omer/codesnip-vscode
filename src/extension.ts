@@ -8,7 +8,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		return;
 	};
 	try { await execShell('cargo codesnip --version'); } catch {
-		vscode.window.showErrorMessage("Codesnip: `cargo-codesnip` not found.\nRun `cargo install --git https://github.com/to-omer/codesnip`.");
+		vscode.window.showErrorMessage("Codesnip: `cargo-codesnip` not found.\nRun `cargo install codesnip`.");
 		return;
 	};
 

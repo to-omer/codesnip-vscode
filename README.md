@@ -6,7 +6,7 @@ Insert the constructed snippet without duplication for Rust.
 
 Install codesnip.
 ```
-cargo install --git https://github.com/to-omer/codesnip
+cargo install codesnip
 ```
 
 Set your library root files to `Codesnip: Source` and reload window.
