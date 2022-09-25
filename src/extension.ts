@@ -45,12 +45,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	try {
 		fs.statSync(config.cacheFile);
-		const codesnipcmd = `cargo codesnip --use-cache="${config.cacheFile}"`;
+		const codesnipcmd = `cargo codesnip --use-cache=${config.cacheFile}`;
 
 		const verifySnippetsDisposable = vscode.commands.registerCommand('codesnip-vscode.verifySnippets', () => {
 			const terminal = vscode.window.createTerminal('Codesnip');
 			terminal.show(false);
-			terminal.sendText(codesnipcmd + ' verify');
+			let verifycmd = codesnipcmd + ' verify';
+			if (config.toolchain !== null) { verifycmd += ` --toolchain=${config.toolchain}`; }
+			if (config.verbose) { verifycmd += ' --verbose'; }
+			terminal.sendText(verifycmd);
 		});
 		context.subscriptions.push(verifySnippetsDisposable);
 
@@ -119,6 +122,8 @@ interface CodesnipConfiguration {
 	minify: boolean,
 	insertionPosition: InsertionPosition,
 	notHide: boolean,
+	toolchain: string | null,
+	verbose: boolean,
 }
 
 enum InsertionPosition {
@@ -147,7 +152,9 @@ function getCodesnipConfiguration(): CodesnipConfiguration | undefined {
 	let minify = codesnip.get<boolean>('minify', false);
 	let insertionPosition = InsertionPosition.fromString(codesnip.get<string>('insertionPosition'));
 	let notHide = codesnip.get<boolean>('notHide', false);
-	return { cacheFile, source, cfg, filterItem, filterAttr, minify, insertionPosition, notHide };
+	let toolchain = codesnip.get<string | null>('verify.toolchain', null);
+	let verbose = codesnip.get<boolean>('verify.verbose', false);
+	return { cacheFile, source, cfg, filterItem, filterAttr, minify, insertionPosition, notHide, toolchain, verbose };
 }
 
 function getDefaultCacheFile(): string | null {

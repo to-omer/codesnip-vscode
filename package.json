@@ -7,7 +7,7 @@
 		"type": "git",
 		"url": "https://github.com/to-omer/codesnip-vscode.git"
 	},
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"engines": {
 		"vscode": "^1.50.0"
 	},
@@ -70,6 +70,19 @@
 					"type": "boolean",
 					"default": false,
 					"description": "snippet list option: --not-hide"
+				},
+				"codesnip.verify.toolchain": {
+					"type": [
+						"string",
+						"null"
+					],
+					"default": null,
+					"description": "toolchain for verify"
+				},
+				"codesnip.verify.verbose": {
+					"type": "boolean",
+					"default": false,
+					"description": "verbose when verify"
 				}
 			}
 		},
