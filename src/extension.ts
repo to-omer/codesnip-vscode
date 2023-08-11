@@ -35,9 +35,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			progress.report({ increment: 1 });
 			const reloadItem = "Reload Now";
 			vscode.window.showInformationMessage("Codesnip: reload required", reloadItem).then(selection => {
-				if (selection === reloadItem) {
-					vscode.commands.executeCommand("workbench.action.reloadWindow");
-				}
+				if (selection === reloadItem) { activate(context); }
 			});
 		}).catch(err => { vscode.window.showErrorMessage("Codesnip: " + err); }));
 	});
@@ -103,9 +101,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		if (event.affectsConfiguration('codesnip')) {
 			const reloadItem = "Reload Now";
 			vscode.window.showInformationMessage("Codesnip: reload required", reloadItem).then(selection => {
-				if (selection === reloadItem) {
-					vscode.commands.executeCommand("workbench.action.reloadWindow");
-				}
+				if (selection === reloadItem) { activate(context); }
 			});
 		}
 	});
