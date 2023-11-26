@@ -33,10 +33,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			title: "Codesnip update cache"
 		}, progress => execShell(getUpdateCacheCommand(config)).then(() => {
 			progress.report({ increment: 1 });
-			const reloadItem = "Reload Now";
-			vscode.window.showInformationMessage("Codesnip: reload required", reloadItem).then(selection => {
-				if (selection === reloadItem) { activate(context); }
-			});
+			activate(context);
 		}).catch(err => { vscode.window.showErrorMessage("Codesnip: " + err); }));
 	});
 	context.subscriptions.push(updateCacheDisposable);
@@ -50,6 +47,7 @@ export async function activate(context: vscode.ExtensionContext) {
 			terminal.show(false);
 			let verifycmd = codesnipcmd + ' verify';
 			if (config.toolchain !== null) { verifycmd += ` --toolchain=${config.toolchain}`; }
+			if (config.edition !== null) { verifycmd += ` --edition=${config.edition}`; }
 			if (config.verbose) { verifycmd += ' --verbose'; }
 			terminal.sendText(verifycmd);
 		});
@@ -99,10 +97,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	vscode.workspace.onDidChangeConfiguration(event => {
 		if (event.affectsConfiguration('codesnip')) {
-			const reloadItem = "Reload Now";
-			vscode.window.showInformationMessage("Codesnip: reload required", reloadItem).then(selection => {
-				if (selection === reloadItem) { activate(context); }
-			});
+			activate(context);
 		}
 	});
 }
@@ -119,6 +114,7 @@ interface CodesnipConfiguration {
 	insertionPosition: InsertionPosition,
 	notHide: boolean,
 	toolchain: string | null,
+	edition: string | null,
 	verbose: boolean,
 }
 
@@ -149,8 +145,9 @@ function getCodesnipConfiguration(): CodesnipConfiguration | undefined {
 	let insertionPosition = InsertionPosition.fromString(codesnip.get<string>('insertionPosition'));
 	let notHide = codesnip.get<boolean>('notHide', false);
 	let toolchain = codesnip.get<string | null>('verify.toolchain', null);
+	let edition = codesnip.get<string | null>('verify.edition', null);
 	let verbose = codesnip.get<boolean>('verify.verbose', false);
-	return { cacheFile, source, cfg, filterItem, filterAttr, minify, insertionPosition, notHide, toolchain, verbose };
+	return { cacheFile, source, cfg, filterItem, filterAttr, minify, insertionPosition, notHide, toolchain, edition, verbose };
 }
 
 function getDefaultCacheFile(): string | null {

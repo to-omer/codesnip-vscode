@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.9]
+### Added
+- Verify option
+  - edition
+
+## [0.0.7]
+### Added
+- Verify option
+  - toolchain
+  - verbose
+
 ## [0.0.5]
 ### Added
 - Minify option
