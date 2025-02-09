@@ -46,29 +46,31 @@ class CodesnipContext {
 		}
 	}
 
+	async findConfigFile(fileName: string): Promise<string | null> {
+		if (fs.existsSync(fileName)) { return fileName; }
+		const folders = vscode.workspace.workspaceFolders;
+		if (folders === undefined) { return null; }
+		for (const folder of folders) {
+			const configPath = vscode.Uri.joinPath(folder.uri, fileName).fsPath;
+			if (fs.existsSync(configPath)) {
+				this.outputChannel.appendLine(`Found config file: ${configPath}`);
+				return configPath;
+			}
+		}
+		return null;
+	}
+
 	async getConfig(): Promise<CodesnipConfiguration> {
 		const targetDir = await this.targetDirectory();
 		const codesnip = vscode.workspace.getConfiguration('codesnip');
 		let cacheFile = targetDir + '/codesnip/codesnip-cache.bin';
-		let source = codesnip.get<string[]>('source', []);
-		let cfg = codesnip.get<string[]>('cfg', []);
-		let filterItem = codesnip.get<string[]>('filterItem', []);
-		let filterAttr = codesnip.get<string[]>('filterAttr', []);
-		let minify = codesnip.get<boolean>('minify', false);
+		let sourceConfig = await this.findConfigFile(codesnip.get<string>('sourceConfig', 'codesnip.json'));
 		let insertionPosition = InsertionPosition.fromString(codesnip.get<string>('insertionPosition', 'last'));
 		let notHide = codesnip.get<boolean>('notHide', false);
 		let toolchain = codesnip.get<string | null>('verify.toolchain', null);
 		let edition = codesnip.get<string | null>('verify.edition', null);
 		let verbose = codesnip.get<boolean>('verify.verbose', false);
-		const config = { cacheFile, source, cfg, filterItem, filterAttr, minify, insertionPosition, notHide, toolchain, edition, verbose };
-		if (config.source.length === 0) {
-			const openItem = "Open Settings";
-			vscode.window.showErrorMessage("Codesnip: No source file is set", openItem).then(selection => {
-				if (selection === openItem) {
-					vscode.commands.executeCommand('workbench.action.openSettings', 'codesnip');
-				}
-			});
-		}
+		const config = { cacheFile, sourceConfig, insertionPosition, notHide, toolchain, edition, verbose };
 		return config;
 	}
 }
@@ -89,14 +91,11 @@ class Codesnip {
 	}
 
 	updateCache() {
-		let cmd = `cargo codesnip`;
-		this.config.source.forEach(value => { cmd += ` -t=${value}`; });
-		this.config.cfg.forEach(value => { cmd += ` --cfg=${value}`; });
-		this.config.filterItem.forEach(value => { cmd += ` --filter-item=${value}`; });
-		this.config.filterAttr.forEach(value => { cmd += ` --filter-attr=${value}`; });
-		if (this.config.minify) { cmd += " --format=minify"; }
-		cmd += ` cache "${this.config.cacheFile}"`;
-
+		if (this.config.sourceConfig === null || !fs.existsSync(this.config.sourceConfig)) {
+			vscode.window.showErrorMessage("Codesnip: sourceConfig not found: " + this.config.sourceConfig);
+			return;
+		}
+		const cmd = `cargo codesnip --source-config="${this.config.sourceConfig}" cache "${this.config.cacheFile}"`;
 		vscode.window.withProgress({
 			location: vscode.ProgressLocation.Notification,
 			title: "Codesnip update cache"
@@ -206,20 +205,19 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.window.showErrorMessage("Codesnip: `cargo` not found");
 		return;
 	};
-	try { await codesnipContext.execShell('cargo codesnip --version'); } catch {
-		vscode.window.showErrorMessage("Codesnip: `cargo-codesnip` not found.\nRun `cargo install codesnip`.");
+	try {
+		const value = await codesnipContext.execShell('cargo codesnip --version');
+		const version = value.trim().split(' ')[1];
+		const versionArray = version.split('.').map(Number);
+		if (versionArray < [0, 4, 0]) {
+			vscode.window.showErrorMessage(`Codesnip: Minimum version 0.4.0, found ${value}\nRun \`cargo install codesnip\` and restart VSCode.`);
+			return;
+		}
+	} catch {
+		vscode.window.showErrorMessage("Codesnip: `cargo-codesnip` not found.\nRun `cargo install codesnip` and restart VSCode.");
 		return;
 	};
 	const config = await codesnipContext.getConfig();
-	if (config.source.length === 0) {
-		const openItem = "Open Settings";
-		vscode.window.showErrorMessage("Codesnip: No source file is set", openItem).then(selection => {
-			if (selection === openItem) {
-				vscode.commands.executeCommand('workbench.action.openSettings', 'codesnip');
-			}
-		});
-	}
-
 	const codesnip = new Codesnip(codesnipContext, config);
 
 	vscode.workspace.onDidChangeConfiguration(event => {
@@ -240,11 +238,7 @@ export function deactivate() { }
 
 interface CodesnipConfiguration {
 	cacheFile: string,
-	source: string[],
-	cfg: string[],
-	filterItem: string[],
-	filterAttr: string[],
-	minify: boolean,
+	sourceConfig: string | null,
 	insertionPosition: InsertionPosition,
 	notHide: boolean,
 	toolchain: string | null,
