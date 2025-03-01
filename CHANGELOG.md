@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.12]
+### Added
+- autoUpdate option
+- autoVerify option
+
 ## [0.0.11]
 ### Modified
 - support codesnip v0.4.0

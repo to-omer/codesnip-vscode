@@ -66,11 +66,13 @@ class CodesnipContext {
 		let cacheFile = targetDir + '/codesnip/codesnip-cache.bin';
 		let sourceConfig = await this.findConfigFile(codesnip.get<string>('sourceConfig', 'codesnip.json'));
 		let insertionPosition = InsertionPosition.fromString(codesnip.get<string>('insertionPosition', 'last'));
+		let autoUpdate = codesnip.get<boolean>('autoUpdate', false);
+		let autoVerify = codesnip.get<boolean>('autoVerify', false);
 		let notHide = codesnip.get<boolean>('notHide', false);
 		let toolchain = codesnip.get<string | null>('verify.toolchain', null);
 		let edition = codesnip.get<string | null>('verify.edition', null);
 		let verbose = codesnip.get<boolean>('verify.verbose', false);
-		const config = { cacheFile, sourceConfig, insertionPosition, notHide, toolchain, edition, verbose };
+		const config = { cacheFile, sourceConfig, insertionPosition, autoUpdate, autoVerify, notHide, toolchain, edition, verbose };
 		return config;
 	}
 }
@@ -101,10 +103,17 @@ class Codesnip {
 			title: "Codesnip update cache"
 		}, progress => this.execShell(cmd).then(() => {
 			progress.report({ increment: 100 });
+			if (this.config.autoVerify) {
+				this.verifySnippet();
+			}
 		}).catch(err => { vscode.window.showErrorMessage("Codesnip: " + err); }));
 	}
 
 	checkCache(force: boolean = false): boolean {
+		if (force && this.config.autoUpdate) {
+			this.updateCache();
+			return fs.existsSync(this.config.cacheFile);
+		}
 		if (fs.existsSync(this.config.cacheFile)) {
 			return true;
 		}
@@ -126,35 +135,37 @@ class Codesnip {
 		this.context.subscriptions.push(updateCacheDisposable);
 	}
 
-	addVerifySnippet() {
-		const verifySnippetsDisposable = vscode.commands.registerCommand('codesnip-vscode.verifySnippets', () => {
-			if (!this.checkCache()) { return; }
+	verifySnippet() {
+		if (!this.checkCache()) { return; }
 
-			const codesnipcmd = `cargo codesnip --use-cache=${this.config.cacheFile}`;
-			let verifycmd = codesnipcmd + ' verify';
-			if (this.config.toolchain !== null) { verifycmd += ` --toolchain=${this.config.toolchain}`; }
-			if (this.config.edition !== null) { verifycmd += ` --edition=${this.config.edition}`; }
-			if (this.config.verbose) { verifycmd += ' --verbose'; }
-			vscode.window.withProgress({
-				location: vscode.ProgressLocation.Notification,
-				title: "Codesnip verify snippets"
-			}, progress => this.execShell(verifycmd).then(() => {
-				progress.report({ increment: 1 });
-				const showOutputItem = "Show Output";
-				vscode.window.showInformationMessage("Codesnip: Verify snippets success", showOutputItem).then(selection => {
-					if (selection === showOutputItem) {
-						this.outputChannel.show();
-					}
-				});
-			}).catch(err => {
-				const showOutputItem = "Show Output";
-				vscode.window.showErrorMessage("Codesnip: " + err, showOutputItem).then(selection => {
-					if (selection === showOutputItem) {
-						this.outputChannel.show();
-					}
-				});
-			}));
-		});
+		const codesnipcmd = `cargo codesnip --use-cache=${this.config.cacheFile}`;
+		let verifycmd = codesnipcmd + ' verify';
+		if (this.config.toolchain !== null) { verifycmd += ` --toolchain=${this.config.toolchain}`; }
+		if (this.config.edition !== null) { verifycmd += ` --edition=${this.config.edition}`; }
+		if (this.config.verbose) { verifycmd += ' --verbose'; }
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: "Codesnip verify snippets"
+		}, progress => this.execShell(verifycmd).then(() => {
+			progress.report({ increment: 1 });
+			const showOutputItem = "Show Output";
+			vscode.window.showInformationMessage("Codesnip: Verify snippets success", showOutputItem).then(selection => {
+				if (selection === showOutputItem) {
+					this.outputChannel.show();
+				}
+			});
+		}).catch(err => {
+			const showOutputItem = "Show Output";
+			vscode.window.showErrorMessage("Codesnip: " + err, showOutputItem).then(selection => {
+				if (selection === showOutputItem) {
+					this.outputChannel.show();
+				}
+			});
+		}));
+	}
+
+	addVerifySnippet() {
+		const verifySnippetsDisposable = vscode.commands.registerCommand('codesnip-vscode.verifySnippets', () => this.verifySnippet());
 		this.context.subscriptions.push(verifySnippetsDisposable);
 	}
 
@@ -240,6 +251,8 @@ interface CodesnipConfiguration {
 	cacheFile: string,
 	sourceConfig: string | null,
 	insertionPosition: InsertionPosition,
+	autoUpdate: boolean,
+	autoVerify: boolean,
 	notHide: boolean,
 	toolchain: string | null,
 	edition: string | null,

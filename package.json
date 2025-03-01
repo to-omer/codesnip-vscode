@@ -7,7 +7,7 @@
 		"type": "git",
 		"url": "https://github.com/to-omer/codesnip-vscode.git"
 	},
-	"version": "0.0.11",
+	"version": "0.0.12",
 	"engines": {
 		"vscode": "^1.50.0"
 	},
@@ -35,6 +35,16 @@
 					],
 					"default": "last",
 					"description": "where to insert the snippet"
+				},
+				"codesnip.autoUpdate": {
+					"type": "boolean",
+					"default": false,
+					"description": "auto update snippet cache"
+				},
+				"codesnip.autoVerify": {
+					"type": "boolean",
+					"default": false,
+					"description": "auto verify snippet cache"
 				},
 				"codesnip.notHide": {
 					"type": "boolean",
